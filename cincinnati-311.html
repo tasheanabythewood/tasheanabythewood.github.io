@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cincinnati 311 service performance | TASHEANA BYHTHEWOOD</title>
+<title>Cincinnati 311 service performance | [YOUR NAME]</title>
 <meta name="description" content="An operations analysis of 517,287 Cincinnati 311 service requests: where the city misses its service commitments, why, and what to do about it.">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -12,7 +12,7 @@
 
 <header class="site">
   <div class="wrap">
-    <a class="name" href="index.html">TASHEANA BYTHEWOOD</a>
+    <a class="name" href="index.html">[YOUR NAME]</a>
     <nav aria-label="Main">
       <a href="index.html#projects">Projects</a>
       <a href="index.html#about">About</a>
@@ -29,7 +29,7 @@
        Which services miss the city's own completion commitments, what drives the
        misses, and where capacity should go.</p>
     <p class="meta">Python, SQL, DuckDB, dimensional modelling &middot;
-       Data as of 18 September 2026</p>
+       Data as of 28 September 2026</p>
   </div>
 </div>
 
@@ -83,8 +83,8 @@
     <tr><th scope="row">Commitment</th><td>14 days</td><td>365 days</td></tr>
     <tr><th scope="row">Failure pattern</th><td>Sharp, seasonal, recovers each autumn</td>
         <td>Persistent, accumulating, does not recover</td></tr>
-    <tr><th scope="row">Overdue open cases</th><td>1,527, median 58 days past due</td>
-        <td>3,389, median 420 days past due</td></tr>
+    <tr><th scope="row">Overdue open cases</th><td>1,520, median 68 days past due</td>
+        <td>3,444, median 426 days past due</td></tr>
     <tr><th scope="row">Response</th><td><strong>Add capacity</strong></td>
         <td><strong>Triage the backlog first</strong></td></tr>
   </tbody>
@@ -97,7 +97,7 @@
 <p>Every non-emergency service request created between 1 January 2023 and
    31 August 2026, pulled from the City of Cincinnati open data portal:
    <strong>517,287 records across 70 fields</strong>, snapshotted on
-   18 September 2026 with its filter, row count and file hash recorded so any
+   28 September 2026 with its filter, row count and file hash recorded so any
    figure here can be traced to a specific extract.</p>
 <p>Three things the dataset does not contain, stated up front because they bound
    every conclusion below:</p>
@@ -198,11 +198,11 @@
 
 <figure>
   <img src="assets/charts/04-backlog-age.png"
-       alt="Horizontal stacked bar chart of the eight services with the most open overdue requests, split by how long each has been past its committed date. Residential building inspection is by far the largest at 3,389 requests, of which more than half are over a year overdue. Bulky collection has 1,527 overdue but almost none older than a year. Several smaller building and permit services are almost entirely over a year old.">
-  <figcaption>The Cincinnati Building Department holds <strong>51.5 percent of all
-    overdue requests citywide on 12.1 percent of intake</strong>. Of its 3,389
-    overdue residential cases, 1,929 are more than a year past due and the median
-    is 420 days. A commitment exceeded by 420 days is not operative, and three
+       alt="Horizontal stacked bar chart of the eight services with the most open overdue requests, split by how long each has been past its committed date. Residential building inspection is by far the largest at 3,444 requests, of which more than half are over a year overdue. Bulky collection has 1,520 overdue but almost none older than a year. Several smaller building and permit services are almost entirely over a year old.">
+  <figcaption>The Cincinnati Building Department holds <strong>52.3 percent of all
+    overdue requests citywide on 12.1 percent of intake</strong>. Of its 3,444
+    overdue residential cases, 1,963 are more than a year past due and the median
+    is 426 days. A commitment exceeded by 426 days is not operative, and three
     other building services show the same signature with almost nothing under a
     year old.</figcaption>
 </figure>
@@ -213,7 +213,7 @@
 
 <figure>
   <img src="assets/charts/05-stable-service-trend.png"
-       alt="Line chart of the on-time rate from 2023 to 2026 for the four Cincinnati 311 services whose committed completion time did not change during the period. Pothole repair, on a 12-day commitment, stays between 91 and 96.6 percent. Litter on private property and tall grass and weeds, both on 45 days, rise from the low 80s and mid 70s to the low 90s. Residential building inspection, on 365 days, rises from 44.8 percent in 2023 to 64.1 in 2024 then falls to 59.0 in 2025, and has no 2026 point because no request created in 2026 has reached its committed date.">
+       alt="Line chart of the on-time rate from 2023 to 2026 for the four Cincinnati 311 services whose committed completion time did not change during the period. Pothole repair, on a 12-day commitment, stays between 91 and 96.6 percent. Litter on private property and tall grass and weeds, both on 45 days, rise from the low 80s and mid 70s to the low 90s. Residential building inspection, on 365 days, rises from 44.8 percent in 2023 to 64.1 in 2024 then falls to 58.7 in 2025, and has no 2026 point because no request created in 2026 has reached its committed date.">
   <figcaption>Only these four held the same committed time across the window, so
     only these support a trend. Pothole repair absorbed a doubling of volume in
     2025 with a three-point dip and recovered to 96.6 percent. Residential
@@ -282,7 +282,7 @@
    furniture is collected.</p>
 
 <h3>Triage the building inspection backlog before discussing capacity</h3>
-<p>1,929 cases more than a year past a 365-day commitment are not a queue. A case
+<p>1,963 cases more than a year past a 365-day commitment are not a queue. A case
    review establishing which represent live work and which are records that were
    never closed out has to come first, and that distinction cannot be made from
    this dataset.</p>
@@ -316,7 +316,7 @@
       as completed service yields a citywide on-time rate of 72.5 percent. Under
       the alternative reading that they represent no service delivered, it falls
       to 61.2 percent. The headline should be read as a range.</li>
-  <li><strong>Trend reporting covers 13.3 percent of volume.</strong> Only four
+  <li><strong>Trend reporting covers 14.2 percent of volume.</strong> Only four
       services held a stable commitment; elsewhere a trend would mix a moving
       promise into a performance measure.</li>
   <li><strong>2026 is a partial year</strong>, January to August. Long-commitment
@@ -361,7 +361,7 @@
 <footer class="site">
   <div class="wrap">
     <p>Data: City of Cincinnati 311 Non-Emergency Service Requests, retrieved
-       18 September 2026. Analysis and views are my own and are not affiliated
+       28 September 2026. Analysis and views are my own and are not affiliated
        with or endorsed by the City of Cincinnati.</p>
     <p><a href="index.html">Back to projects</a></p>
   </div>

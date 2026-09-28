@@ -1,0 +1,156 @@
+/* ---------------------------------------------------------------------------
+   Portfolio stylesheet
+
+   One file, no framework, no build step, no CDN. A portfolio site that depends
+   on a external stylesheet is a portfolio site that can break while you are
+   asleep, and a recruiter who sees an unstyled page does not try again.
+
+   The palette and its rules come from reports/palette.md. Contrast ratios
+   below were measured, not guessed.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --forest:     #1a5442;  /* 8.78:1 on white. Links, headings, primary data */
+  --alert:      #8c2f1f;  /* 8.26:1 on white. Emphasis only, never beside forest */
+  --sage:       #bed4c8;  /* 1.56:1. Fills and blocks only, never text */
+  --off-white:  #eaeaea;  /* Section backgrounds */
+  --light-grey: #d9d9d9;  /* Rules and borders */
+  --mid-grey:   #737373;  /* 4.74:1 on white. Secondary text */
+  --ink:        #000000;  /* Body text */
+  --paper:      #ffffff;
+
+  --measure: 68ch;        /* Line length. Beyond ~75 characters the eye loses
+                             its place returning to the next line. */
+  --gap: 1.5rem;
+}
+
+/* System font stack: no webfont request, no layout shift, no third party. */
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper);
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+body { margin: 0; }
+
+.wrap { max-width: 78ch; margin: 0 auto; padding: 0 1.25rem; }
+.prose { max-width: var(--measure); }
+
+/* --- Skip link: the first thing a keyboard user needs ---------------------- */
+.skip {
+  position: absolute; left: -9999px;
+  background: var(--forest); color: var(--paper);
+  padding: .6rem 1rem; z-index: 100;
+}
+.skip:focus { left: 1rem; top: 1rem; }
+
+/* --- Type ----------------------------------------------------------------- */
+h1, h2, h3 { line-height: 1.25; color: var(--forest); font-weight: 700; }
+h1 { font-size: 2.1rem; margin: 0 0 .5rem; letter-spacing: -0.01em; }
+h2 { font-size: 1.4rem; margin: 3rem 0 .75rem; }
+h3 { font-size: 1.1rem; margin: 2rem 0 .5rem; color: var(--ink); }
+p, li { max-width: var(--measure); }
+
+a { color: var(--forest); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+a:focus-visible { outline: 3px solid var(--alert); outline-offset: 2px; }
+
+.lede { font-size: 1.15rem; color: var(--mid-grey); }
+.meta { font-size: .85rem; color: var(--mid-grey); }
+
+/* --- Header and nav -------------------------------------------------------- */
+header.site {
+  border-bottom: 1px solid var(--light-grey);
+  padding: 1rem 0;
+}
+header.site .wrap { display: flex; flex-wrap: wrap; gap: 1rem;
+                    align-items: baseline; justify-content: space-between; }
+header.site .name { font-weight: 700; color: var(--forest); text-decoration: none;
+                    font-size: 1.05rem; }
+nav a { margin-left: 1.25rem; font-size: .95rem; }
+
+/* --- Hero ------------------------------------------------------------------ */
+.hero { background: var(--off-white); padding: 3rem 0; margin-bottom: 2rem; }
+
+/* --- The takeaway box: the one thing a skimmer must read ------------------- */
+.takeaway {
+  background: var(--sage);
+  border-left: 6px solid var(--forest);
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+}
+.takeaway h2 { margin-top: 0; font-size: 1.05rem; text-transform: uppercase;
+                letter-spacing: .06em; }
+.takeaway p:last-child { margin-bottom: 0; }
+
+/* Emphasis block. The alert colour sits on white here, at 8.26:1, and never
+   touches the forest green. See reports/palette.md. */
+.caution {
+  border-left: 6px solid var(--alert);
+  background: var(--paper);
+  padding: .75rem 1.25rem;
+  margin: 1.5rem 0;
+}
+.caution strong { color: var(--alert); }
+
+/* --- Figures --------------------------------------------------------------- */
+figure { margin: 2.5rem 0; max-width: 100%; }
+figure img {
+  width: 100%; height: auto; display: block;
+  border: 1px solid var(--light-grey);
+}
+figcaption { font-size: .9rem; color: var(--mid-grey); margin-top: .6rem;
+             max-width: var(--measure); }
+
+/* --- Tables ---------------------------------------------------------------- */
+.table-scroll { overflow-x: auto; margin: 1.5rem 0; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+caption { text-align: left; font-size: .9rem; color: var(--mid-grey);
+          padding-bottom: .5rem; }
+th, td { text-align: left; padding: .5rem .75rem;
+         border-bottom: 1px solid var(--light-grey); }
+thead th { border-bottom: 2px solid var(--forest); white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr:nth-child(even) { background: #f7f7f7; }
+
+/* --- Project cards --------------------------------------------------------- */
+.cards { display: grid; gap: var(--gap); grid-template-columns: 1fr; margin: 2rem 0; }
+@media (min-width: 42rem) { .cards { grid-template-columns: 1fr 1fr; } }
+.card {
+  border: 1px solid var(--light-grey);
+  border-top: 4px solid var(--forest);
+  padding: 1.25rem;
+}
+.card h3 { margin-top: 0; }
+.card p { font-size: .95rem; }
+.tags { list-style: none; padding: 0; margin: .75rem 0 0;
+        display: flex; flex-wrap: wrap; gap: .4rem; }
+.tags li { background: var(--off-white); color: var(--mid-grey);
+           font-size: .78rem; padding: .18rem .55rem; border-radius: 2px; }
+
+/* --- Contents list --------------------------------------------------------- */
+.toc { background: var(--off-white); padding: 1rem 1.5rem; margin: 2rem 0; }
+.toc ol { margin: .5rem 0 0; padding-left: 1.2rem; }
+.toc li { margin: .2rem 0; }
+
+/* --- Footer ---------------------------------------------------------------- */
+footer.site { border-top: 1px solid var(--light-grey); margin-top: 4rem;
+              padding: 2rem 0 3rem; color: var(--mid-grey); font-size: .9rem; }
+
+/* --- Print: a case study gets printed more often than you expect ----------- */
+@media print {
+  header.site nav, .toc { display: none; }
+  a { color: var(--ink); text-decoration: none; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em;
+                           color: var(--mid-grey); }
+  .hero, .takeaway { background: none; border-left: 3px solid var(--ink); }
+  figure { break-inside: avoid; }
+}
