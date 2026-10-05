@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFL fourth-down decisions | Tasheana Bythewood</title>
+<meta name="description" content="A hypothesis test on 47,892 NFL fourth-down decisions, 2014 to 2025: how often teams punt when going for it has a higher modelled win probability, and whether the pattern is systematic.">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap">
+    <a class="name" href="index.html">Tasheana Bythewood</a>
+    <nav aria-label="Main">
+      <a href="index.html#projects">Projects</a>
+      <a href="index.html#about">About</a>
+      <a href="index.html#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="meta">Decision analytics case study</p>
+    <h1>When going for it is clearly better, NFL teams still punt about half the time</h1>
+    <p class="lede prose">47,892 fourth-down decisions, 2014 to 2025. How often teams
+       punt when the model says going for it is better, whether that is a
+       systematic pattern or model noise, and where it costs the most.</p>
+    <p class="meta">Python, DuckDB, logistic regression, bootstrap confidence
+       intervals &middot; Data as of 4 October 2026</p>
+  </div>
+</div>
+
+<main id="main" class="wrap">
+
+<div class="takeaway">
+  <h2>Executive takeaway</h2>
+  <p><strong>When going for it was better by 2 or more points of win probability,
+     teams punted 52.5 percent of the time.</strong> When punting was better by the
+     same margin, they went for it 0.3 percent of the time. Random mistakes would
+     run both ways; these run one way, in all 12 seasons.</p>
+  <p>The habit has halved since 2014 but not closed. <strong>On fourth and 1 or 2,
+     from a team's own 21 to the opponent's 35, make going for it the default when
+     the edge is 2+ points.</strong> That band holds 53 percent of the win
+     probability given up, and teams still punt there 47 percent of the time.</p>
+</div>
+
+<div class="toc" aria-label="Contents">
+  <strong>On this page</strong>
+  <ol>
+    <li><a href="#question">The question and the hypothesis</a></li>
+    <li><a href="#data">The data, and what it cannot tell you</a></li>
+    <li><a href="#checks">What validation changed</a></li>
+    <li><a href="#findings">Findings</a></li>
+    <li><a href="#ruled-out">What I ruled out</a></li>
+    <li><a href="#recommendation">Recommendation and trade-offs</a></li>
+    <li><a href="#measure">How to tell whether it worked</a></li>
+    <li><a href="#limits">Limitations</a></li>
+    <li><a href="#build">How it was built</a></li>
+  </ol>
+</div>
+
+<section id="question" class="prose">
+<h2>The question and the hypothesis</h2>
+<p>On fourth down a team chooses between going for it, punting and kicking a field
+   goal. Public win-probability models put a number on each choice. The question
+   is how often teams punt when the model says going for it is better, and whether
+   that reflects a systematic habit or the ordinary noise any model carries.</p>
+<p>I stated the hypothesis before running the analysis:</p>
+<ul>
+  <li><strong>H0.</strong> After accounting for field position, yards to go,
+      score, time remaining, timeouts and game strength, teams do not
+      systematically punt when going for it offers greater expected win
+      probability.</li>
+  <li><strong>H1.</strong> Teams systematically punt in some situations where
+      going for it offers greater expected win probability.</li>
+</ul>
+<p>Every control named in H0 is an input to the nfl4th models, with game strength
+   entering through the pre-game point spread. Comparing the go and punt win
+   probabilities for the same snap therefore holds them fixed.
+   <strong>Rejecting H0 required three independent tests to agree.</strong></p>
+
+<div class="table-scroll">
+<table>
+  <caption>Three tests, all pointing the same way</caption>
+  <thead>
+    <tr><th scope="col">Test</th><th scope="col">Question</th><th scope="col">Result</th></tr>
+  </thead>
+  <tbody>
+    <tr><th scope="row">Asymmetry</th>
+        <td>Are wrong punts more common than wrong attempts?</td>
+        <td>52.5% vs 0.3%; difference 95% CI 50.6 to 53.9 points</td></tr>
+    <tr><th scope="row">Structure</th>
+        <td>With the edge held fixed, does the situation still predict a punt?</td>
+        <td>Yes. Joint Wald chi-square 1,261 on 15 df, p &lt; 1e-200</td></tr>
+    <tr><th scope="row">Persistence</th>
+        <td>Does it hold every season?</td>
+        <td>Significant in 12 of 12 seasons</td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>Verdict: H0 is rejected.</strong></p>
+</section>
+
+<section id="data" class="prose">
+<h2>The data, and what it cannot tell you</h2>
+<p>Every fourth down from the 2014 to 2025 regular seasons and postseasons, from
+   nflverse play-by-play, joined play by play to the win probabilities published
+   by <a href="https://www.nfl4th.com">nfl4th</a>. That is the same file nfl4th's
+   own loader uses, so the probabilities match the package exactly.
+   <strong>47,892 decisions</strong>, snapshotted on 4 October 2026 with each
+   source's release timestamp and a file hash recorded.</p>
+<p>The headline population is the <strong>25,318 decisions</strong> that were a go
+   or a punt, where both options are modelled, outside garbage time.</p>
+<p>Three things the data cannot do, stated up front because they bound every
+   conclusion below:</p>
+<ul>
+  <li><strong>It cannot see past the model.</strong> Every finding is a gap
+      between what teams did and what nfl4th recommends. If the model is wrong in
+      a situation, the gap there is wrong too.</li>
+  <li><strong>It cannot see what coaches see.</strong> Injuries, matchups,
+      weather beyond the basic fields, and how the next drive is likely to go are
+      not in the data.</li>
+  <li><strong>It cannot cover overtime or the opponent's 34 and in.</strong>
+      nfl4th does not compute overtime, and it does not model a punt that close to
+      the end zone.</li>
+</ul>
+</section>
+
+<section id="checks" class="prose">
+<h2>What validation changed</h2>
+<p>Four things would have made the numbers wrong without anything visibly
+   failing. Checks caught each one.</p>
+
+<h3>The package's headline number answers a different question</h3>
+<p>nfl4th's <code>go_boost</code> compares going for it with the
+   <em>better</em> of punting and kicking. Validation confirmed it equals that
+   difference exactly. This project's question is go versus punt, so it computes
+   its own measure rather than borrowing one that sounds right.</p>
+
+<h3>Replayed fourth downs were counted twice</h3>
+<p>After a delay of game or a false start the down is replayed, and both snaps
+   appear in the data. <strong>2,014 series contain a replayed fourth down.</strong>
+   Only the last snap counts as the decision.</p>
+
+<h3>The obvious coding rule dropped real punts</h3>
+<p>Coding a punt from the &ldquo;Punt formation&rdquo; text missed
+   <strong>195 punts and field goals</strong> with an accepted post-snap penalty,
+   whose description reads &ldquo;punts 46 yards &hellip; PENALTY&rdquo;. I found
+   them by reading the excluded rows rather than accepting the count. The final
+   coding agrees with an independent field in the data on 98.7 percent of punts;
+   the rest are return touchdowns, blocks and penalties, which were still punt
+   decisions.</p>
+
+<div class="caution">
+  <p><strong>The result that changed when the rows were shuffled.</strong> The
+     structure test fits a flexible curve to the win-probability edge. As first
+     written, that curve was redundant with the model's intercept. The model still
+     converged to the same fit, so nothing errored, but its test statistic moved
+     between 809 and 980 depending on row order. The curve is now constrained, the
+     code checks the model is fully identified, and two consecutive runs produce
+     identical output.</p>
+</div>
+</section>
+
+<section id="findings">
+<div class="prose">
+<h2>Findings</h2>
+<h3>1. Teams keep punting after going for it becomes the better call</h3>
+</div>
+
+<figure>
+  <img src="assets/charts/nfl/01-decision-curve.png"
+       alt="Line chart of punt rate against the win-probability edge for going for it. Left of zero, where punting is better, teams punt nearly 100 percent of the time. Right of zero the line falls slowly: at a 3 to 4 point edge for going, teams still punted 56 percent, and the punt rate does not drop below half until the edge passes about 4 points. A team following win probability would drop to near zero just right of zero.">
+  <figcaption>A team deciding on win probability would punt almost always left of
+    zero and almost never right of it. The league's curve crosses 50 percent only
+    once going for it is about 4 points better. 9.5 percent of all punts (95% CI
+    9.1 to 9.9) came when going for it was better by more than 2 points.</figcaption>
+</figure>
+
+<div class="prose">
+<h3>2. The mistakes run one way</h3>
+</div>
+
+<figure>
+  <img src="assets/charts/nfl/02-asymmetry.png"
+       alt="Two horizontal bars. When going for it was better by 2 or more points of win probability, teams punted anyway 52.5 percent of the time across 4,085 decisions. When punting was better by the same margin, teams went for it anyway 0.3 percent of the time across 7,560 decisions. Random mistakes would be roughly balanced; these all lean toward punting.">
+  <figcaption>This is the test that separates habit from noise. Model error would
+    produce mistakes in both directions. At a stricter 4-point margin the split is
+    still 31.4 percent against 0.3 percent, so the result does not depend on
+    small, uncertain edges. Confidence intervals resample whole games, because
+    plays in one game share a coach, weather and score.</figcaption>
+</figure>
+
+<div class="prose">
+<h3>3. Field position drives the punt, not the win probability</h3>
+</div>
+
+<figure>
+  <img src="assets/charts/nfl/04-field-position.png"
+       alt="Four horizontal bars, ordered from a team's own goal line to the opponent's 35. Holding the win-probability edge for going for it fixed at +3 points, the model's predicted punt rate is 97 percent at a team's own 1 to 20, 93 percent at its own 21 to 40, 84 percent from its own 41 to midfield, and 59 percent at the opponent's 49 to 35. If win probability drove the decision, all four bars would be equal.">
+  <figcaption>From a logistic regression of the punt decision on a flexible curve
+    of the edge plus field position, distance, score and quarter, with standard
+    errors clustered by game. The win probability says the same thing in all four
+    rows; the decision does not. Teams appear to treat their own half of the field
+    as punting territory whatever the numbers say.</figcaption>
+</figure>
+
+<div class="prose">
+<h3>4. The habit has halved, and it has not gone away</h3>
+</div>
+
+<figure>
+  <img src="assets/charts/nfl/03-season-trend.png"
+       alt="Line chart by season, 2014 to 2025. The share of clearly-go situations where teams punted fell from 71 percent in 2014 to 37 percent in 2025, with most of the drop between 2018 and 2020. A second line, for going for it when punting was better, stays below 1 percent every season. The gap between the lines is statistically significant in all 12 seasons.">
+  <figcaption>Most of the change came between 2018 and 2020. The timing coincides
+    with public fourth-down models coming into wide use, but this analysis cannot
+    show they caused it. In 2025 the league still punted 138 times when going for
+    it was better by 2 or more points.</figcaption>
+</figure>
+
+<div class="prose">
+<h3>5. The cost is concentrated in a few situations</h3>
+</div>
+
+<figure>
+  <img src="assets/charts/nfl/05-costliest-situations.png"
+       alt="Six horizontal bars ranking situations by expected wins forfeited through punting when going for it was better by 2 or more points. Fourth and 1 between a team's own 21 and 40 is highlighted and largest, at 16.1 expected wins from 485 punts, more than twice the next situation. Fourth and 1 from own 41 to 50: 7.5 wins. Fourth and 4 to 5 from opponent 49 to 35: 6.0 wins. Fourth and 6 to 9 from opponent 49 to 35: 5.5 wins. Fourth and 2 from own 21 to 40: 5.1 wins. Fourth and 2 from own 41 to 50: 3.9 wins. League-wide total at this margin: 72 expected wins.">
+  <figcaption>These six situations hold 61 percent of the 72 expected wins given up
+    across the league over twelve seasons. That total is 0.19 wins per team per
+    season, or 0.32 counting every positive edge however small. These are expected
+    wins in the model, not observed ones.</figcaption>
+</figure>
+</section>
+
+<section id="ruled-out" class="prose">
+<h2>What I ruled out</h2>
+
+<h3>Ranking teams</h3>
+<p>For 2023 to 2025, team punt rates in clearly-go situations range from 23 to 64
+   percent. That looks like a league table. At 22 to 45 relevant decisions per
+   team, a significance test says the spread is consistent with chance
+   (chi-square p = 0.061). Naming the most conservative club would reward luck,
+   so no team is named. The pattern is league-wide.</p>
+
+<h3>Counting every edge as a mistake</h3>
+<p>At a zero margin, a third of all punts would count as wrong. Below about 2
+   points the gap between options sits inside plausible model error, and
+   headlining it would overstate the problem and invite overcorrection. Results
+   are reported at margins of 0, 1, 2 and 4 points; the headline uses 2.</p>
+
+<h3>Garbage time driving the result</h3>
+<p>Decisions where either option's win probability is below 5 or above 95 percent
+   are excluded from the headline. Putting them back lowers the headline share
+   from 9.5 to 7.9 percent. Restricting to the regular season, to the first half,
+   or comparing going for it with the better of punting and kicking moves it
+   between 7.4 and 9.5 percent. No variant changes the direction.</p>
+</section>
+
+<section id="recommendation" class="prose">
+<h2>Recommendation and trade-offs</h2>
+
+<h3>Go for it by default on fourth and 1 or 2, own 21 to opponent 35</h3>
+<p>When the model's edge is 2 or more points, going for it is the default and a
+   punt needs a stated reason: an injury at a key position, a specific matchup,
+   weather. Before each game the analytics staff prepares the recommendations for
+   this band given the spread and expected conditions. Logging the reasons for
+   each override builds the evidence for the next season.</p>
+<p><strong>Why a default:</strong> on the sideline, a punt is the choice that never
+   needs defending. A default changes which choice has to be justified, which is
+   exactly where the habit lives.</p>
+<p><strong>Trade-off, stated plainly:</strong> teams that did go for it on fourth
+   and 1 between their own 21 and midfield converted 71.5 percent of 822 attempts.
+   That rate comes from attempts teams chose to make, so it is optimistic for the
+   ones they declined. The 2-point threshold is the margin of safety for that.</p>
+
+<h3>Review the opponent 49 to 35 at 4 to 9 yards separately</h3>
+<p>The second concentration, at 11.5 expected wins. It is outside reliable field
+   goal range, and a punt from there gains little field position. The conversion
+   odds are lower than in short yardage, so it needs its own review rather than
+   the same default.</p>
+</section>
+
+<section id="measure" class="prose">
+<h2>How to tell whether it worked</h2>
+<p><strong>Primary measure:</strong> among the club's own decisions where going
+   for it was better by 2 or more points, the share that were punts. The league
+   figure in 2025 was 37 percent.</p>
+<p><strong>Why not wins:</strong> the effect is about 0.19 expected wins a season.
+   A 17-game record cannot detect that, and judging the policy by it would credit
+   or blame it for noise. Measure the decision, which the club controls.</p>
+<p><strong>Check the model, not just the coaches:</strong> record every attempt in
+   the band and compare actual conversions with the model's predicted first-down
+   probability for the same snaps. If teams convert less often than predicted,
+   the threshold should rise. That is also how to settle the main limitation
+   below.</p>
+</section>
+
+<section id="limits" class="prose">
+<h2>Limitations</h2>
+<ol>
+  <li><strong>Every finding is relative to nfl4th's models.</strong></li>
+  <li><strong>The asymmetry has two readings.</strong> Coaches may be too
+      conservative, or they may correctly believe the conversion model is too
+      optimistic for the attempts they decline, because it is trained on the
+      attempts teams chose to make. The data cannot separate the two. That the
+      gap persists at a 4-point margin makes pure model error less likely.</li>
+  <li><strong>Win probability is not the only objective.</strong> Job security and
+      the uneven blame for a failed attempt compared with a punt are real
+      incentives. This measures the gap, not the motive.</li>
+  <li><strong>Overtime and the opponent's 34 and in are excluded.</strong></li>
+  <li><strong>Observational data, no causal claims.</strong> It shows what teams
+      did against what the model recommended, not what would have happened
+      otherwise.</li>
+</ol>
+</section>
+
+<section id="build" class="prose">
+<h2>How it was built</h2>
+<p>Python and DuckDB, with statsmodels for the regression. No R install was
+   needed: nfl4th's published probability file is read directly in Python. The
+   whole pipeline reruns from one command: acquire, validate, model, analyse,
+   chart.</p>
+<ul>
+  <li><strong>Immutable snapshot.</strong> Each pull writes a manifest with the
+      source, the release's last-updated time, row counts and a SHA-256 hash.</li>
+  <li><strong>Eighteen validation checks</strong> on grain, join coverage, decision
+      coding and probability ranges, each logged with its SQL and output.</li>
+  <li><strong>Definitions in one file.</strong> The decision coding, the measure,
+      the margin and the situation bands live in a single module that the model
+      and the analysis both import.</li>
+  <li><strong>A tested analysis table.</strong> Eight tests run on every build,
+      including one decision per series and a reconciliation back to the
+      validation count. Excluded decisions are flagged with a reason, not
+      silently filtered.</li>
+  <li><strong>Uncertainty that respects the data.</strong> Game-clustered
+      bootstrap confidence intervals, 2,000 resamples with a fixed seed, and
+      game-clustered standard errors in the regression.</li>
+</ul>
+<p><a href="https://github.com/tasheanabythewood/nfl-analysis">Code, decision memo,
+   validation log and analysis tables on GitHub</a></p>
+</section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <p>Data: nflverse play-by-play and nfl4th win-probability models, retrieved
+       4 October 2026. Analysis and views are my own and are not affiliated with or
+       endorsed by the NFL, any club, or the nflverse project.</p>
+    <p><a href="index.html">Back to projects</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
